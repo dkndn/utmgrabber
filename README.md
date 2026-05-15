@@ -157,6 +157,17 @@ The values are URL-encoded and special characters (`\`, `:`, `|`) are escaped.
 
 To receive the values as JSON instead, use `UtmGrabber.getSingleParamGroupingVals('json')`.
 
+You can also build an SPG manually from a selected list of keys:
+
+```js
+const spgJson = window.UtmGrabber.getSingleParamGroupingVals(
+    'json',
+    ['utm_term', 'gclid', '_fbc', '_fbp', 'fbclid', 'user_agent']
+);
+```
+
+Only keys that currently have a stored value are included. Missing keys are skipped automatically.
+
 ---
 
 ## Events
