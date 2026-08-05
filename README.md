@@ -23,7 +23,7 @@ Lightweight JavaScript library that automatically captures UTM parameters and co
 
 ### Without configuration (zero-config)
 
-Just include the script. UTM Grabber will run automatically with sensible defaults: it captures URL params and injects them into all external anchor links and any `<input name="...">` fields that match stored UTM keys.
+Just include the script. UTM Grabber will run automatically with sensible defaults: it captures URL params and injects them into all external anchor links and into every form field whose `data-utmg`, `name`, or `placeholder` matches a stored key.
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/dkndn/utmgrabber@latest/utmg.min.js"></script>
@@ -125,7 +125,37 @@ storeIn: {
 
 ### `storeIn.forms` — Form field configuration
 
-By default, UTM Grabber matches `<input name="utm_source">` etc. by their `name` attribute. Custom form configs allow you to define your own field selection logic:
+Out of the box — without any config — UTM Grabber fills every `<input>` on the page whose `data-utmg`, `name`, or `placeholder` attribute matches a stored key:
+
+```html
+<input type="hidden" data-utmg="utm_source">     <!-- explicit -->
+<input type="hidden" name="utm_campaign">        <!-- name attribute -->
+<input type="text" placeholder="utm_term">       <!-- placeholder as key -->
+```
+
+**Attribute priority:** `data-utmg` > `name` > `placeholder`. The first attribute that *also has a value in storage* wins — so a page-builder `name="input_5"` does not block a matching `placeholder`.
+
+**Already-filled fields are never overwritten** (except for the value-token pattern below).
+
+#### `data-utmg` on a wrapper
+
+Many page builders don't let you set `name` or `placeholder` on the input itself. Put `data-utmg` on any wrapper element instead — the first `input`, `textarea`, or `select` inside it gets filled:
+
+```html
+<div data-utmg="utm_campaign">
+    <div class="builder-inner">
+        <input type="text">          <!-- ← this one gets filled -->
+    </div>
+</div>
+```
+
+`data-utmg` accepts *any* storage key, not just `utm_*` — e.g. `data-utmg="user_agent"` or `data-utmg="fbclid"`.
+
+**Value-token pattern:** If an input already has a value that matches a forwardable key (e.g. `value="utm_source"`), UTM Grabber replaces it with the stored value — or clears the field if nothing is stored. This supports tools like Gravity Forms that use the `value` attribute as a placeholder token.
+
+#### Custom configs
+
+Only needed when your fields carry the key somewhere else entirely:
 
 ```js
 storeIn: {
@@ -138,7 +168,7 @@ storeIn: {
 }
 ```
 
-**Value-token pattern:** If an input field already has a value that matches a UTM key (e.g. `value="utm_source"`), UTM Grabber replaces it with the actual stored value. This supports tools that use the `value` attribute as a placeholder token.
+`fieldKey` is optional — without it, the native attribute lookup (`data-utmg` > `name` > `placeholder`) applies to the matched elements too. Custom configs run *in addition to* the built-in default, they don't replace it.
 
 ---
 
